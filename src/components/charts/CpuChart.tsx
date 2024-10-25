@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { TriangleAlert } from 'lucide-react';
 
-const CpuChart = () => {
+const CpuChart = ({ serverUrl }: { serverUrl: string }) => {
   const [data, setData] = useState([]);
+  const [warning, setWarning] = useState(false); // State to track if CPU exceeds 70%
 
   useEffect(() => {
-    const eventSource = new EventSource('http://127.0.0.1:3000/cpu-usage');
+    const eventSource = new EventSource(serverUrl);
 
     eventSource.onmessage = function(event) {
       try {
@@ -22,6 +23,10 @@ const CpuChart = () => {
           if (updatedData.length > 10) {
             updatedData.shift();
           }
+
+          // Check if any value in the updated data exceeds 70%
+          const exceedsThreshold = updatedData.some(item => item[1] > 70);
+          setWarning(exceedsThreshold); // Set warning state
 
           return updatedData;
         });
@@ -75,14 +80,16 @@ const CpuChart = () => {
 
   return (
     <div className="card bg-base-100 shadow-xl">
-      <div className="card-body">
-        <div className="flex ">
+      <div className="card-body p-2 lg:p-5">
+        <div className="flex items-center">
           <h2 className="card-title">CPU Usage</h2>
-          <span>
-            <TriangleAlert />
-          </span>
+          {warning && (
+            <span className="ml-3 tooltip tooltip-warning" data-tip="Your Usage For The Last 3 second Exceeds The Threshold.">
+              <TriangleAlert color="red" /> {/* Show warning icon when CPU > 70% */}
+            </span>
+          )}
         </div>
-        <ReactECharts option={option} style={{ height: '350px' }} />
+        <ReactECharts option={option} style={{ height: '400px' }} />
       </div>
     </div>
   );

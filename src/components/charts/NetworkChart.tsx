@@ -1,21 +1,22 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { TriangleAlert } from 'lucide-react';
 
-const NetworkChart = () => {
+const NetworkChart = ({ serverUrl }: { serverUrl: string }) => {
   const [data, setData] = useState([]);
+  const [showWarning, setShowWarning] = useState(false);
 
   // Subscribe to the SSE stream and update chart data
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:3000/network-speed');
+    const eventSource = new EventSource(serverUrl);
 
     eventSource.onmessage = function(event) {
       const newNetworkData = JSON.parse(event.data);
 
       // Append the new data and maintain only the last 10 entries
       setData((prevData) => {
-        const updatedData = [...prevData, newNetworkData]; // Append new data
+        const updatedData = [...prevData, newNetworkData];
 
         if (updatedData.length > 10) {
           updatedData.shift(); // Remove the oldest entry if we exceed 10
@@ -34,6 +35,22 @@ const NetworkChart = () => {
       eventSource.close();
     };
   }, []);
+
+  // Watch the `data` array to update the warning state based on speeds
+  useEffect(() => {
+    // Check if any speed exceeds 5 MiB/s (5 * 1024 * 1024 bytes)
+    const exceeds5MiB = data.some(item => item.downloadSpeed > 2 * 1024 * 1024 || item.uploadSpeed > 2 * 1024 * 1024);
+
+    // Check if all speeds are less than 2 MiB/s (2 * 1024 * 1024 bytes)
+    const allBelow2MiB = data.every(item => item.downloadSpeed < 2 * 1024 * 1024 && item.uploadSpeed < 2 * 1024 * 1024);
+
+    // Update the warning state based on the conditions
+    if (exceeds5MiB) {
+      setShowWarning(true); // Show warning if any speed exceeds 5 MiB/s
+    } else if (allBelow2MiB) {
+      setShowWarning(false); // Hide warning if all speeds are below 2 MiB/s
+    }
+  }, [data]);
 
   // Generate the x-axis labels (timestamps) and the y-axis values for download and upload
   const dateList = data.map(item => new Date(item.timestamp).toLocaleTimeString()); // Use actual timestamp
@@ -56,8 +73,8 @@ const NetworkChart = () => {
       return `${speedInBytes} Bytes`; // Keep as Bytes
     }
   };
+
   const option = {
-    animation: false,
     tooltip: {
       trigger: 'axis',
       formatter: function(params) {
@@ -98,14 +115,16 @@ const NetworkChart = () => {
 
   return (
     <div className="card bg-base-100 shadow-xl">
-      <div className="card-body">
+      <div className="card-body p-0 lg:p-3">
         <div className="flex items-center">
           <h2 className="card-title">Network Usage</h2>
-          <span>
-            <TriangleAlert className=' ml-4 text-yellow-700' />
-          </span>
+          {showWarning && (
+            <span className="tooltip tooltip-warning" data-tip="Your Usage For The Last 3 second Exceeds The Threshold.">
+              <TriangleAlert className=' ml-4 text-yellow-700' />
+            </span>
+          )}
         </div>
-        <ReactECharts option={option} style={{ height: '350px' }} />
+        <ReactECharts option={option} style={{ height: "400px" }} className='w-full' />
       </div>
     </div>
   );

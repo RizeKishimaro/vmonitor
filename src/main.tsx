@@ -5,7 +5,7 @@ import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <div data-theme="dark">
+    <div data-theme="luxury">
       <App />
     </div>
   </StrictMode>,

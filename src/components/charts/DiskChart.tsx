@@ -4,14 +4,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios'; // Import Axios
 import ReactECharts from 'echarts-for-react';
 
-const DiskChart = () => {
+const DiskChart = ({ serverUrl }: { serverUrl: string }) => {
   const [data, setData] = useState([]); // State to hold partition data
 
   // Fetch disk partition data on component mount
   useEffect(() => {
     const fetchDiskData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/disk-partitions'); // Fetch data from the backend
+        const response = await axios.get(serverUrl); // Fetch data from the backend
         const formattedData = response.data.map(partition => ({
           name: partition.filesystem, // Set filesystem name
           total: parseFloat(partition.size), // Total size in GB
@@ -43,7 +43,7 @@ const DiskChart = () => {
   const usedOption = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {c}%'
+      formatter: '{b}: {c} G'
     },
     legend: {
       top: '0%',
@@ -72,7 +72,7 @@ const DiskChart = () => {
         emphasis: {
           label: {
             show: true,
-            fontSize: '20',
+            fontSize: '15',
             fontWeight: 'bold'
           }
         },
@@ -116,7 +116,7 @@ const DiskChart = () => {
         emphasis: {
           label: {
             show: true,
-            fontSize: '20',
+            fontSize: '15',
             fontWeight: 'bold'
           }
         },
