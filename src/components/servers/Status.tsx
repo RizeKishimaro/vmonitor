@@ -10,18 +10,25 @@ import ServerInfo from './components/ServerInfo';
 
 const Status = () => {
   const [status, setStatus] = useState('Loading...');
+  const [statusColor, setStatusColor] = useState('text-warning'); // Default color for loading
   useEffect(() => {
     const eventSource = new EventSource(`${import.meta.env.VITE_APP_API_URL}/server-manager/status`);
 
-    eventSource.onmessage = function(event) {
+
+    eventSource.onmessage = function (event) {
       const data = JSON.parse(event.data);
-      console.log(data)
-      setStatus(`Status: ${data.status} (Checked at: ${new Date(data.timestamp).toLocaleTimeString()})`);
+      const isServerDown = data.status.toLowerCase() === 'down';
+
+      setStatus(
+        `Status: ${data.status} (Checked at: ${new Date(data.timestamp).toLocaleTimeString()})`
+      );
+      setStatusColor(isServerDown ? 'text-error' : 'text-success'); // Apply color based on status
     };
 
-    eventSource.onerror = function(error) {
+    eventSource.onerror = function (error) {
       console.error('SSE connection error:', error);
       setStatus('Error retrieving status');
+      setStatusColor('text-warning');
     };
 
     return () => {
@@ -30,9 +37,8 @@ const Status = () => {
   }, []);
 
   return (
-    <div>
-      <h1 className='text-2xl font-bold'>Server Status</h1>
-      <p>{status}</p>
+    <div className="p-6 space-y-4">
+      <h1 className="text-3xl font-bold">Server Dashboard <span className={`text-sm font-semibold ${statusColor}`}>{status}</span></h1>
 
       <ServerInfo />
       <DatePicker />
