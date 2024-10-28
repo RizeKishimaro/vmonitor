@@ -24,7 +24,7 @@ const SSH: React.FC<ServerProps> = ({ server }) => {
     term.current = new Terminal({
       cursorBlink: true,
       rows: 47,
-      cols: 100,
+      cols: 120,
       theme: themes.theme,
 
     });

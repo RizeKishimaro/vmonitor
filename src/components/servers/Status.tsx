@@ -9,7 +9,7 @@ import DatePicker from './utils/DatePicker';
 import ServerInfo from './components/ServerInfo';
 
 const Status = () => {
-  const [status, setStatus] = useState('Loading...');
+  const [status, setStatus] = useState('Checking server status...');
   useEffect(() => {
     const eventSource = new EventSource(`${import.meta.env.VITE_APP_API_URL}/server-manager/status`);
 
@@ -34,7 +34,10 @@ const Status = () => {
       <h1 className='text-2xl font-bold'>Server Status</h1>
       <p>{status}</p>
 
-      <ServerInfo />
+      <div className='my-3'>
+        <h1 className='text-2xl font-bold'>System Specification</h1>
+        <ServerInfo />
+      </div>
       <DatePicker />
       <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-1 w-screen p-4'>
         <StatusChart />
