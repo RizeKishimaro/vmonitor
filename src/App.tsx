@@ -7,6 +7,7 @@ import Status from './components/servers/Status';
 import SSH from './components/servers/SSH';
 import NotFound from './pages/notfound/NotFound';
 import Error from './pages/notfound/Error';
+import Login from './pages/login/Login';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -27,6 +28,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
+        <Route path='/login' element={<Login />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="servers" element={<Outlet />}>
