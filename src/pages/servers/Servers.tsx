@@ -2,15 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-
-const fakeServers = [
-  { id: 1, name: 'Server 1', cpuUsage: '40%', storage: '500 GB', ram: '16 GB', url: "https://www.shopify.com/" },
-  { id: 2, name: 'Server 2', cpuUsage: 'N/A', storage: '1 TB', ram: '32 GB', url: "https://bun.sh/" },
-  { id: 3, name: 'Server 3', cpuUsage: '80%', storage: '250 GB', ram: '8 GB', url: "https://hapi.com/" },
-  { id: 4, name: 'Server 4', cpuUsage: '20%', storage: '2 TB', ram: '64 GB', url: "https://localhost/" },
-  { id: 5, name: 'Server 5', cpuUsage: 'N/A', storage: '500 GB', ram: '16 GB', url: "https://localhost/" },
-  { id: 6, name: 'Server 6', cpuUsage: 'N/A', storage: '500 GB', ram: '16 GB', url: "https://localhost/" },
-];
+import CreateServerModal from '../../components/servers/components/CreateServerModal';
 
 const getStatusClass = async (host) => {
   try {
@@ -47,35 +39,53 @@ const handleResponse = (responseCode) => {
 };
 
 const Servers = () => {
+  const [servers, setServers] = useState([]);
   const [serverStatuses, setServerStatuses] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/servers/`, {
+          headers: {
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1a2FAbHVrYS5jb20iLCJzdWIiOjEsImlhdCI6MTczMDEyNjc3MCwiZXhwIjoxNzMwNzMxNTcwfQ.8EZOKyy4bcHjhe_sdymkxsqcC5j9r9IAz9rpjhiYVxQ"
+          }
+        });
+        if (response.data?.data) {
+          setServers(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching servers:', error);
+      }
+    };
+
+    fetchServers();
+  }, []);
+
+  useEffect(() => {
     const fetchStatus = async (server) => {
-      const status = await getStatusClass(server.url);
-      setServerStatuses(prevStatuses => ({
+      const status = await getStatusClass(server.server_url);
+      setServerStatuses((prevStatuses) => ({
         ...prevStatuses,
         [server.id]: status
       }));
     };
 
     // Fetch each server status individually, updating the state as each one is fetched
-    fakeServers.forEach(server => {
+    servers.forEach(server => {
       fetchStatus(server);
     });
-  }, []);
+  }, [servers]);
 
-  const filteredServers = fakeServers.filter(server =>
+  const filteredServers = servers.filter(server =>
     server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    server.cpuUsage.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    server.storage.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    server.ram.toLowerCase().includes(searchTerm.toLowerCase())
+    server.server_url.toLowerCase().includes(searchTerm.toLowerCase()) // Searching by URL
   );
 
   return (
     <div className="p-4">
-      <div className='flex flex-col lg:flex-row justify-between mb-5'>
-        <h2 className="text-2xl font-bold mb-4">Server Status</h2>
+      <div className='flex flex-col lg:flex-row justify-between mb-3'>
+        <h2 className="text-2xl font-bold mb-2">Server Status</h2>
         <div>
           <label className="input input-bordered flex items-center gap-2">
             <input
@@ -99,6 +109,9 @@ const Servers = () => {
         </div>
       </div>
 
+      <div className="mb-4">
+        <CreateServerModal />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {filteredServers.map(server => (
           <div
@@ -114,9 +127,9 @@ const Servers = () => {
                   </span>
                 </div>
                 <div className="mt-2">
-                  <p><strong>CPU Usage:</strong> {server.cpuUsage}</p>
-                  <p><strong>Storage:</strong> {server.storage}</p>
-                  <p><strong>RAM:</strong> {server.ram}</p>
+                  <p><strong>Server URL:</strong> {server.server_url}</p>
+                  <p><strong>SSH Username:</strong> {server.ssh_username}</p>
+                  <p><strong>SSH Password:</strong> {server.ssh_password}</p>
                 </div>
               </div>
             </Link>

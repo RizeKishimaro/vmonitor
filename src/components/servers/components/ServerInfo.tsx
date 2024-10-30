@@ -44,8 +44,15 @@ const ServerInfo = () => {
         <p><strong>Total RAM:</strong> {osInfo?.data?.totalRam} GB</p>
         <p><strong>CPU Core Model:</strong> {osInfo?.data?.cpuCoreNames[0]}</p>
         <p><strong>CPU Cores:</strong> {osInfo?.data?.cpuCoreNames?.length}</p>
-      </div>
-      <div className="flex-1 p-2">
+
+        <h4>Storage Devices</h4>
+        {osInfo?.data?.storageBlock?.map((device, index) => (
+          <p key={index}>
+            <strong>Device:</strong><span> {device.device}</span><br />
+            <strong>Type:</strong> {device.type}
+          </p>
+        ))}
+      </div>      <div className="flex-1 p-2">
         <h3>Network</h3>
         <p><strong>Public IP:</strong> {osInfo?.data?.publicIp}</p>
         <p><strong>Internal IP(s):</strong> {osInfo?.data?.internalIps.join(', ')}</p>

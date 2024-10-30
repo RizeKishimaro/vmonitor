@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Route, Routes, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/NetworkPage';
 import Servers from './pages/servers/Servers';
@@ -7,6 +7,8 @@ import Status from './components/servers/Status';
 import SSH from './components/servers/SSH';
 import NotFound from './pages/notfound/NotFound';
 import Error from './pages/notfound/Error';
+import { AuthProvider } from './components/servers/utils/AuthContext';
+import ProtectedRoute from './components/servers/utils/ProtectedRoutes';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -22,33 +24,40 @@ const Layout: React.FC = () => {
     </div>
   );
 };
-
-const App: React.FC = () => {
+const App = () => {
   return (
     <Router>
+      <AuthWrapper />
+    </Router>
+  );
+};
+
+const AuthWrapper = () => {
+  const navigate = useNavigate();
+
+  return (
+    <AuthProvider navigate={navigate}>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
+          <Route index element={<ProtectedRoute ><HomePage /></ProtectedRoute>} />
           <Route path="servers" element={<Outlet />}>
-            <Route index element={<Servers />} />
-            <Route path="manage" element={<>Server Status Page</>} />
-            <Route path=":id" element={<Outlet />} >
-              <Route index path='status' element={<Status />} />
-              <Route path="summary" element={<>Server Summary Page</>} />
-              <Route path="ssh" element={<SSH server={{ host: 'localhost', password: "admin", username: "rizekishimaro" }} />} />
+            <Route index element={<ProtectedRoute><Servers /></ProtectedRoute>} />
+            <Route path="manage" element={<ProtectedRoute>Server Status Page</ProtectedRoute>} />
+            <Route path=":id" element={<Outlet />}>
+              <Route index path="status" element={<ProtectedRoute><Status /></ProtectedRoute>} />
+              <Route path="summary" element={<ProtectedRoute>Server Summary Page</ProtectedRoute>} />
+              <Route path="ssh" element={<ProtectedRoute><SSH /></ProtectedRoute>} />
             </Route>
           </Route>
         </Route>
 
-        {/* Define the NotFound route explicitly */}
         <Route path="/404" element={<NotFound />} />
-        <Route path='/error' element={<Error />} />
-
-        {/* Catch-all route for 404, redirect to /404 */}
+        <Route path="/error" element={<Error />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </Router>
+    </AuthProvider>
   );
 };
+
 export default App;
 
