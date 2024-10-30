@@ -9,6 +9,8 @@ import NotFound from './pages/notfound/NotFound';
 import Error from './pages/notfound/Error';
 import { AuthProvider } from './components/servers/utils/AuthContext';
 import ProtectedRoute from './components/servers/utils/ProtectedRoutes';
+import Login from './pages/login/Login';
+
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -38,6 +40,7 @@ const AuthWrapper = () => {
   return (
     <AuthProvider navigate={navigate}>
       <Routes>
+        <Route path='/login' element={<Login />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<ProtectedRoute ><HomePage /></ProtectedRoute>} />
           <Route path="servers" element={<Outlet />}>
