@@ -27,22 +27,20 @@ axiosClient.interceptors.response.use(
     return response;
   },
   error => {
-    const navigate = useNavigate() // Get the history object
+    const navigate = useNavigate()
 
-    // Handle specific response codes
     if (error.response) {
       const { status } = error.response;
 
-      // Redirect to login on 401 (Unauthorized)
       if (status === 401) {
-        localStorage.removeItem('token'); // Optional: Clear token if unauthorized
-        navigate('/login'); // Redirect to login
+        localStorage.removeItem('access_token');
+        navigate('/login');
       }
 
       // Handle other status codes as needed
       if (status === 403) {
         // Handle forbidden access
-        alert("Access denied.");
+        navigate('/forbidden');
       }
 
       // Add more status handling as required...

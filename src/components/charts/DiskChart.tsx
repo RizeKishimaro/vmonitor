@@ -11,8 +11,10 @@ const DiskChart = ({ serverUrl }: { serverUrl: string }) => {
   useEffect(() => {
     const fetchDiskData = async () => {
       try {
+        console.log(serverUrl)
         const response = await axios.get(serverUrl); // Fetch data from the backend
-        const formattedData = response.data.map(partition => ({
+        console.log(response)
+        const formattedData = response.data && response.data.map(partition => ({
           name: partition.filesystem, // Set filesystem name
           total: parseFloat(partition.size), // Total size in GB
           used: parseFloat(partition.used) // Used size in GB

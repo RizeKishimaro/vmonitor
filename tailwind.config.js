@@ -1,3 +1,5 @@
+import daisyui from 'daisyui';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -5,9 +7,20 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        moveUp: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-60px)' },
+        },
+      },
+      animation: {
+        moveUp: 'moveUp 0.5s ease-out forwards',
+        fadeIn: 'fadeIn 0.5s ease-out 0.5s forwards', // delay fade-in by 0.5s
+      },
+    },
   },
-  plugins: [require('daisyui')],
+  plugins: [daisyui],
   daisyui: {
     themes: [
       "light",

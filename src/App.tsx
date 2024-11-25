@@ -10,6 +10,8 @@ import Error from './pages/notfound/Error';
 import { AuthProvider } from './components/servers/utils/AuthContext';
 import ProtectedRoute from './components/servers/utils/ProtectedRoutes';
 import Login from './pages/login/Login';
+import MonitorServer from './components/servers/Summary';
+import SignUp from './pages/login/SignUp';
 
 
 const Layout: React.FC = () => {
@@ -41,6 +43,7 @@ const AuthWrapper = () => {
     <AuthProvider navigate={navigate}>
       <Routes>
         <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<SignUp />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<ProtectedRoute ><HomePage /></ProtectedRoute>} />
           <Route path="servers" element={<Outlet />}>
@@ -48,7 +51,7 @@ const AuthWrapper = () => {
             <Route path="manage" element={<ProtectedRoute>Server Status Page</ProtectedRoute>} />
             <Route path=":id" element={<Outlet />}>
               <Route index path="status" element={<ProtectedRoute><Status /></ProtectedRoute>} />
-              <Route path="summary" element={<ProtectedRoute>Server Summary Page</ProtectedRoute>} />
+              <Route path="monitor" element={<ProtectedRoute><MonitorServer /></ProtectedRoute>} />
               <Route path="ssh" element={<ProtectedRoute><SSH /></ProtectedRoute>} />
             </Route>
           </Route>

@@ -5,20 +5,30 @@ import axiosClient from '../services/axiosClient';
 import CpuChart from '../components/charts/CpuChart';
 import RamChart from '../components/charts/RamChart';
 import DiskChart from '../components/charts/DiskChart';
+import { useAuth } from '../components/servers/utils/AuthContext';
 
 const NetworkPage = () => {
-  // const dummyNetworkData = [["2000-06-05", 116], ["2000-06-06", 129], ["2000-06-07", 135], ["2000-06-08", 86]];
-  // const dummyCpuData = [["2024-01-01", 20], ["2024-01-02", 30], ["2024-01-03", 40]];
-  // const dummyRamData = [["2024-01-01", 60], ["2024-01-02", 70], ["2024-01-03", 75]];
-  // const dummyDiskData = [["2024-01-01", 100], ["2024-01-02", 200], ["2024-01-03", 150]];
-  // const dummyOverallData = [["2024-01-01", 90], ["2024-01-02", 95], ["2024-01-03", 100]];
-
+  const [server, setServer] = useState<any>(null)
+  const { getUserId } = useAuth();
+  const token = localStorage.getItem('access_token');
+  const firstServer = async () => {
+    const response = await axiosClient.get(`${import.meta.env.VITE_APP_API_URL}/server-manager/get-first-server?id=${getUserId(token)}`);
+    setServer(response.data)
+    console.log(response.data)
+    return response.data;
+  }
+  useEffect(() => {
+    firstServer()
+  }, [])
   return (
     <div className="p-0 grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-6 mt-8">
-      <NetworkChart serverUrl={`${import.meta.env.VITE_APP_API_URL}/network-speed`} />
-      <CpuChart serverUrl={`${import.meta.env.VITE_APP_API_URL}/cpu-usage`} />
-      <RamChart serverUrl={`${import.meta.env.VITE_APP_API_URL}/ram-usage`} />
-      <DiskChart serverUrl={`${import.meta.env.VITE_APP_API_URL}/disk-partitions`} />
+      {server && (<>
+        <NetworkChart serverUrl={`${server.server_url}/network-speed`} />
+        <CpuChart serverUrl={`${server.server_url}/cpu-usage`} />
+        <RamChart serverUrl={`${server.server_url}/ram-usage`} />
+        <DiskChart serverUrl={`${server.server_url}/disk-partitions`} />
+
+      </>)}
     </div>
   );
 };

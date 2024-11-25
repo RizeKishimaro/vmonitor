@@ -1,25 +1,33 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/servers/utils/AuthContext";
+import { PersonStanding } from "lucide-react";
 
-const Login = () => {
+const SignUp = () => {
   //state
   const { login } = useAuth()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const navigate = useNavigate()
 
   const validateUser = async () => {
     const response = await axios.post(
-      `${import.meta.env.VITE_APP_API_URL}/login`,
+      `${import.meta.env.VITE_APP_API_URL}/login/signup`,
       {
         email,
         password,
+        name: username
       }
     );
-    const token = response.data.access_token;
-    login(token);
+    if (response.status === 201) {
+      const token = response.data.access_token;
+      login(token);
+      navigate('/')
+    } else {
+      alert(response.data.message)
+    }
   };
 
   //function
@@ -30,8 +38,15 @@ const Login = () => {
           <div className="bg-gray-900 items-center md:w-2/2 md:h-2/3 w-full  md:my-auto rounded-l-3xl">
             <div className=" flex flex-col items-center w-full h-full p-3 justify-center ">
               <div className="mb-3">
-                <h1 className="text-2xl text-center mb-3 font-bold">Welcome!</h1>
-                <p className="mb-2">Please Login to Monitor Your Servers</p>
+                <h1 className="text-2xl text-center mb-3 font-bold">Howdy!</h1>
+                <p className="mb-2">Please fill out your details</p>
+              </div>
+              <div className="mb-3">
+                <label className="input input-bordered flex items-center gap-2">
+                  <PersonStanding />
+                  <input type="text" onChange={(e) => { setUsername(e.target.value) }} className="grow" placeholder="Username" />
+                </label>
+
               </div>
               <div className="mb-3">
                 <label className="input input-bordered flex items-center gap-2">
@@ -69,12 +84,9 @@ const Login = () => {
                 <button onClick={validateUser} className="relative inline-flex items-center justify-center p-4 px-5 py-3 overflow-hidden font-medium text-indigo-600 transition duration-300 ease-out rounded-full shadow-xl group hover:ring-1 hover:ring-purple-500">
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-700"></span>
                   <span className="absolute bottom-0 right-0 block w-64 h-64 mb-32 mr-4 transition duration-500 origin-bottom-left transform rotate-45 translate-x-24 bg-pink-500 rounded-full opacity-30 group-hover:rotate-90 ease"></span>
-                  <span className="relative text-white">Login</span>
+                  <span className="relative text-white">Register</span>
                 </button>
 
-              </div>
-              <div className="mt-5">
-                <p>Already have An Account? <Link to="/register" className="text-blue-500">Register</Link></p>
               </div>
 
             </div>
@@ -96,4 +108,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;

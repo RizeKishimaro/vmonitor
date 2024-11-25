@@ -42,6 +42,7 @@ const Status = () => {
       console.error("Error fetching RAM data:", error);
     }
   };
+
   useEffect(() => {
     const eventSource = new EventSource(`${import.meta.env.VITE_APP_API_URL}/server-manager/status`);
 
@@ -81,8 +82,7 @@ const Status = () => {
         <CpuUsageChart data={cpuData} />
         <NetworkDownChart data={networkData} />
         <RamUsageChart data={ramData} />
-        <StatusChart />
-        <ServerLogs />
+        {/* <StatusChart /> */}
       </div>
     </div>
   );

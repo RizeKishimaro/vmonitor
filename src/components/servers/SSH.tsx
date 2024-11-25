@@ -8,20 +8,28 @@ import { themes } from '../../components/servers/utils/theme';
 
 const SSH = () => {
   const { id } = useParams(); // Get the server ID from the URL
+
   const terminalRef = useRef<HTMLElement | null>(null);
-  const term = useRef<any>(null);
   const socket = useRef<any>(null);
 
   useEffect(() => {
     // Initialize terminal
-    term.current = new Terminal({
+    const terminal = new Terminal({
       cursorBlink: true,
       rows: 47,
       cols: 120,
-      theme: themes.theme
+      fontWeight: '600',
+      fontWeightBold: '800',
+      fontFamily: 'monospace',
+      theme: themes.theme,
     });
-    term.current.open(terminalRef.current);
-    term.current.focus();
+    if (terminalRef.current) {
+      console.log(terminalRef.current)
+      terminal.open(terminalRef.current);
+      terminal.focus();
+
+    }
+
 
     // Display logo in the terminal
     const logo = [
@@ -35,10 +43,10 @@ const SSH = () => {
     ];
 
     logo.forEach(line => {
-      term.current.writeln(`\x1b[34m${line}\x1b[0m`);
+      terminal.writeln(`\x1b[34m${line}\x1b[0m`);
     });
 
-    term.current.writeln('\n\x1b[31mWelcome to Vmonitor Console. Thank you for using our SSH Terminal Client!\x1b[0m');
+    terminal.writeln('\n\x1b[31mWelcome to Vmonitor Console. Thank you for using our SSH Terminal Client!\x1b[0m');
 
     // Initialize WebSocket connection to the backend
     socket.current = io(`${import.meta.env.VITE_APP_SOCKET_URL}/socket.io`);
@@ -48,20 +56,22 @@ const SSH = () => {
 
     // Handle incoming data from the backend
     socket.current.on('data', (data) => {
-      term.current.write(data);
+      terminal.write(data);
     });
 
     // Handle user input and send it to the backend via WebSocket
-    term.current.onData((input: string) => {
+    terminal.onData((input: string) => {
       socket.current.emit('input', input);
     });
 
     // Cleanup
     return () => {
-      term.current.dispose();
+      if (terminal) {
+        terminal.dispose();
+      }
       socket.current.disconnect();
     };
-  }, [id]);
+  }, []);
 
   return (
     <div className='overflow-hidden'>

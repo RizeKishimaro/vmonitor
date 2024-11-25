@@ -1,15 +1,25 @@
 
 import axios from "axios";
 import { memo, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const ServerInfo = () => {
   const [osInfo, setOsInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [serverData, setServerData] = useState<any>({});
+  const { id } = useParams()
+  const getServerData = async () => {
+    const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/servers/${id}`);
+    console.log(response.data.data)
+    setServerData(response.data.data);
+  }
 
   const getOsData = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/server-manager/os-info`);
+      console.log(serverData)
+      const response = await axios.get(`${serverData?.server_url}/os-info`);
+      console.log(response.data)
       setOsInfo(response.data);
     } catch (err) {
       console.error('Error fetching OS data:', err);
@@ -21,8 +31,10 @@ const ServerInfo = () => {
 
   useEffect(() => {
     getOsData();
-  }, []);
-
+  }, [serverData]);
+  useEffect(() => {
+    getServerData();
+  }, [])
   if (loading) {
     return <p>Loading...</p>;
   }

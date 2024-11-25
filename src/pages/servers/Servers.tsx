@@ -3,8 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import CreateServerModal from '../../components/servers/components/CreateServerModal';
+import { PenBox, Trash } from 'lucide-react';
+import { useAuth } from '../../components/servers/utils/AuthContext';
+import UpdateServerModal from '../../components/servers/components/UpdateServerModal';
+import axiosClient from '../../services/axiosClient';
 
 const getStatusClass = async (host) => {
+
   try {
     const response = await axios.get(host, { timeout: 20000 });
     return handleResponse(response.status);
@@ -12,7 +17,6 @@ const getStatusClass = async (host) => {
     console.error('Error fetching server status:', error);
 
     if (error.code === 'ERR_NETWORK' && error.request.status === 0) {
-      console.log('This might be a CORS error or network issue.');
       return { status: 'Network Error', class: 'badge badge-error' };
     }
 
@@ -20,6 +24,19 @@ const getStatusClass = async (host) => {
     return handleResponse(responseCode) || { status: 'Error', class: 'badge badge-error' };
   }
 };
+const toastMessage = (message) => {
+  return (
+    <div className="toast">
+      <div className="alert alert-info">
+        <span>{message}</span>
+      </div>
+    </div>
+  )
+}
+const DeleteServer = async (id) => {
+  await axios.delete(`${import.meta.env.VITE_APP_API_URL}/servers/${id}`);
+  toastMessage('Server Deleted');
+}
 
 const handleResponse = (responseCode) => {
   switch (responseCode) {
@@ -42,15 +59,27 @@ const Servers = () => {
   const [servers, setServers] = useState([]);
   const [serverStatuses, setServerStatuses] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [serverId, setServerId] = useState(null);
+  const { getUserId } = useAuth();
+  const token = localStorage.getItem('access_token');
+
+  const handleOpenModal = (serverId) => {
+    setServerId(serverId)
+    setIsModalOpen(true)
+  };
+  const handleCloseModal = () => setIsModalOpen(false);
 
   useEffect(() => {
     const fetchServers = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/servers/`, {
+        const response = await axiosClient.get(`${import.meta.env.VITE_APP_API_URL}/servers/?id=${getUserId(token)}`, {
           headers: {
-            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1a2FAbHVrYS5jb20iLCJzdWIiOjEsImlhdCI6MTczMDEyNjc3MCwiZXhwIjoxNzMwNzMxNTcwfQ.8EZOKyy4bcHjhe_sdymkxsqcC5j9r9IAz9rpjhiYVxQ"
-          }
-        });
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        },
+        );
+        console.log(response.data)
         if (response.data?.data) {
           setServers(response.data.data);
         }
@@ -113,26 +142,44 @@ const Servers = () => {
         <CreateServerModal />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {filteredServers.map(server => (
+        {filteredServers.map((server, index) => (
           <div
             key={server.id}
             className="card bg-base-300 hover:bg-base-200 shadow-xl transition duration-300 ease-in-out"
           >
-            <Link to={`/servers/${server.id}/status`}>
-              <div className="card-body">
-                <div className="flex items-center justify-between">
-                  <h3 className="card-title">{server.name}</h3>
-                  <span className={serverStatuses[server.id]?.class || 'badge badge-neutral'}>
-                    {serverStatuses[server.id]?.status || 'Connecting...'}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <p><strong>Server URL:</strong> {server.server_url}</p>
-                  <p><strong>SSH Username:</strong> {server.ssh_username}</p>
-                  <p><strong>SSH Password:</strong> {server.ssh_password}</p>
-                </div>
+            <div className="card-body">
+
+              <div className="flex items-center justify-between">
+                <h3 className="card-title">{server.name}</h3>
+                <span className={serverStatuses[server.id]?.class || 'badge badge-neutral'}>
+                  {serverStatuses[server.id]?.status || 'Connecting...'}
+                </span>
               </div>
-            </Link>
+
+
+              <div className='flex justify-between'>
+
+                <Link to={`/servers/${server.id}/status`}>
+                  <div className="mt-2">
+                    <p><strong>Server URL:</strong> {server.server_url}</p>
+                    <p><strong>SSH Username:</strong> {server.ssh_username}</p>
+                    <p><strong>SSH Password:</strong> {server.ssh_password}</p>
+                  </div>
+
+                </Link>
+                <div className='flex flex-col z-50'>
+                  <button onClick={() => { handleOpenModal(server.id) }} className="btn btn-primary mb-3">
+                    <PenBox />
+                  </button>
+                  <button onClick={() => DeleteServer(server.id)} className='btn btn-error'><Trash /></button>
+                </div>
+
+
+              </div>
+              {isModalOpen && (
+                <UpdateServerModal serverId={serverId} onClose={handleCloseModal} />
+              )}
+            </div>
           </div>
         ))}
       </div>

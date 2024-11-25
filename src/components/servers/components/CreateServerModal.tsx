@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../utils/AuthContext';
+import axios from 'axios';
 
 const CreateServerModal = () => {
   const [formData, setFormData] = useState({
     name: '',
-    user_id: '',
     server_url: '',
     ssh_host: '',
-    ssh_port: 22, // Default SSH port
+    ssh_port: 22,
     ssh_username: '',
     ssh_password: '',
-    ssh_key: null, // Store file input here
+    ssh_key: null,
   });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -18,11 +19,12 @@ const CreateServerModal = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setFormData((prevData) => ({ ...prevData, [name]: value, user_id: getUserId() }));
   };
+  const { getUserId } = useAuth();
 
   const handleFileChange = (e) => {
-    setFormData((prevData) => ({ ...prevData, ssh_key: e.target.files[0] }));
+    setFormData((prevData) => ({ ...prevData, ssh_key: e.target.files[0], }));
   };
 
   const handleAuthMethodChange = (e) => {
@@ -32,32 +34,34 @@ const CreateServerModal = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const form = new FormData();
-    for (const key in formData) {
-      form.append(key, formData[key]);
-    }
-
     try {
-      const response = await fetch('http://localhost:3000/servers/', {
-        method: 'POST',
-        body: form,
-        headers: {
-          Authorization: "Bearer ", // Replace with your actual token
-        },
-      });
+      const token = localStorage.getItem('access_token');
 
-      if (response.ok) {
-        console.log('Server created successfully!');
-        // Reset form
+      const updatedFormData = {
+        ...formData,
+        user_id: getUserId(token),
+      };
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_APP_API_URL}/servers/`,
+        updatedFormData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // Attach the token dynamically
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
         setFormData({
           name: '',
-          user_id: '',
           server_url: '',
           ssh_host: '',
           ssh_port: 22,
           ssh_username: '',
           ssh_password: '',
-          ssh_key: null, // Reset file input
+          ssh_key: null,
         });
         setIsOpen(false);
       } else {
@@ -85,19 +89,6 @@ const CreateServerModal = () => {
                   type="text"
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="input input-bordered w-full"
-                />
-              </div>
-              <div>
-                <label className="label">
-                  <span className="label-text">User ID:</span>
-                </label>
-                <input
-                  type="number"
-                  name="user_id"
-                  value={formData.user_id}
                   onChange={handleChange}
                   required
                   className="input input-bordered w-full"
